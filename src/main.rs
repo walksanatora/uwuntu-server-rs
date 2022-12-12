@@ -1,13 +1,23 @@
 #![feature(decl_macro)]
 #[macro_use] extern crate rocket;
 
+use chrono::prelude::*;
+use once_cell::sync::OnceCell;
 use rocket::fs::NamedFile;
 use rocket::http::{ContentType, Status};
-use rocket::response::status::{NotFound};
+use rocket::response::status::NotFound;
 use rocket::serde::json::Json;
-use std::fs::read_dir;
-
 use serde::Serialize;
+use std::fs::read_dir;
+use std::sync::Mutex;
+
+
+struct State {
+    last_fetch: NaiveTime,
+    last_build: NaiveTime
+}
+
+static STATE: OnceCell<Mutex<State>> = OnceCell::new();
 
 #[derive(Serialize)]
 struct Message{
@@ -71,5 +81,6 @@ async fn download(target: String,branch: String) -> Result<(ContentType,NamedFil
 
 #[launch]
 fn rocket() -> _ {
+    let _ = STATE.set(Mutex::new(State { last_fetch: NaiveTime::default(), last_build: NaiveTime::default() }));
     rocket::build().mount("/", routes![branches,download,trigger])
 }
