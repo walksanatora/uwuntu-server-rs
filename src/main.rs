@@ -18,7 +18,7 @@ struct Message{
 #[get("/trigger/<trig>")]
 async fn trigger(trig: String) -> (Status,Json<Message>) {
     match trig.as_str() {
-        "regen" => {
+        "rebuild" => {
             (Status::NotImplemented,Json(Message { message: "Not implemented yet".into(), code: 501 }))
         }
         _ => {(Status::BadRequest,Json(Message { message: "Invalid Trigger".into(), code: 400 }))}
