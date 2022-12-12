@@ -12,7 +12,17 @@ use std::fs::read_dir;
 async fn branches(t: String) -> Result<Json<Vec<String>>,NotFound<String>>  {
     let branches = read_dir(format!("files/{}",t));
     if let Ok(files) = branches {
-        let output = files.map(|f|{f.unwrap().file_name().into_string().unwrap()}).collect();
+        let output = files.map(|f|{
+            let s = f.unwrap()
+            .file_name()
+            .into_string()
+            .unwrap();
+            s.pop();
+            s.pop();
+            s.pop();
+            s.pop(); //fuck unicode making have to do this
+            s
+        }).collect();
         Ok(Json(output))
     } else {
         Err(NotFound("Invalid type".into()))
