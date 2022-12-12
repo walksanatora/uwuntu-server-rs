@@ -2,11 +2,28 @@
 #[macro_use] extern crate rocket;
 
 use rocket::fs::NamedFile;
-use rocket::http::ContentType;
-use rocket::response::status::NotFound;
+use rocket::http::{ContentType, Status};
+use rocket::response::status::{NotFound};
 use rocket::serde::json::Json;
 use std::fs::read_dir;
 
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct Message{
+    message: String,
+    code: u16
+}
+
+#[get("/trigger/<trig>")]
+async fn trigger(trig: String) -> (Status,Json<Message>) {
+    match trig.as_str() {
+        "regen" => {
+            (Status::NotImplemented,Json(Message { message: "Not implemented yet".into(), code: 501 }))
+        }
+        _ => {(Status::BadRequest,Json(Message { message: "Invalid Trigger".into(), code: 400 }))}
+    }
+}
 
 #[get("/download/<target>")]
 async fn branches(target: String) -> Result<Json<Vec<String>>,NotFound<String>>  {
@@ -54,5 +71,5 @@ async fn download(target: String,branch: String) -> Result<(ContentType,NamedFil
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![branches,download])
+    rocket::build().mount("/", routes![branches,download,trigger])
 }
