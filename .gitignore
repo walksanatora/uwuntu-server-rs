@@ -1,3 +1,6 @@
 /target
 test
 test.rs
+/ccpcci/computer/0/input/*
+/ccpcci/computer/0/output/*
+/ccpcci/computer/0/log.txt
