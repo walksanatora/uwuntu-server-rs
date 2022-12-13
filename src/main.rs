@@ -27,20 +27,27 @@ struct Message{
     code: u16
 }
 
+#[derive(Serialize)]
+struct TriggerMessage{
+    message: String,
+    code: u16,
+    delay: i64
+}
+
 #[get("/trigger/<trig>")]
-async fn trigger(trig: String) -> (Status,Json<Message>) {
+async fn trigger(trig: String) -> (Status,Json<TriggerMessage>) {
     match trig.as_str() {
         "rebuild" => {
             let mut state = STATE.get().unwrap().lock().unwrap();
             let rtime = Local::now().time() - state.last_build;
             if rtime > state.build_delay {
                 state.last_build = Local::now().time();
-                (Status::NotImplemented,Json(Message { message: "Not implemented yet".into(), code: 501 }))
+                (Status::NotImplemented,Json(TriggerMessage { message: "Not implemented yet".into(), code: 501, delay: state.build_delay.num_seconds() }))
             } else {
-                (Status::TooManyRequests,Json(Message {message: format!("CI only alloys rebuilds every {}s,{}s remaining",state.build_delay.num_seconds(),(state.build_delay-rtime).num_seconds()), code: 429}))
+                (Status::TooManyRequests,Json(TriggerMessage {message: format!("CI only alloys rebuilds every {}s,{}s remaining",state.build_delay.num_seconds(),(state.build_delay-rtime).num_seconds()), code: 429,delay: (state.build_delay-rtime).num_seconds()}))
             }
         }
-        _ => {(Status::BadRequest,Json(Message { message: "Invalid Trigger".into(), code: 400 }))}
+        _ => {(Status::BadRequest,Json(TriggerMessage { message: "Invalid Trigger".into(), code: 400, delay:0 }))}
     }
 }
 
