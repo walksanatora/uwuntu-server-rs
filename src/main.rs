@@ -31,12 +31,13 @@ struct Message{
 async fn trigger(trig: String) -> (Status,Json<Message>) {
     match trig.as_str() {
         "rebuild" => {
-            let state = STATE.get().unwrap().lock().unwrap();
+            let mut state = STATE.get().unwrap().lock().unwrap();
             let rtime = Local::now().time() - state.last_build;
             if rtime > state.build_delay {
+                state.last_build = Local::now().time();
                 (Status::NotImplemented,Json(Message { message: "Not implemented yet".into(), code: 501 }))
             } else {
-                (Status::TooManyRequests,Json(Message {message: format!("CI only alloys rebuilds every {},{} remaining",rtime,rtime-state.build_delay), code: 429}))
+                (Status::TooManyRequests,Json(Message {message: format!("CI only alloys rebuilds every {}s,{}s remaining",state.build_delay.num_seconds(),(state.build_delay-rtime).num_seconds()), code: 429}))
             }
         }
         _ => {(Status::BadRequest,Json(Message { message: "Invalid Trigger".into(), code: 400 }))}
